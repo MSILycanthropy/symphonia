@@ -1,20 +1,20 @@
-package dev.hytalemodding;
+package io.github.msilycanthropy.symphonia;
 
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
-import dev.hytalemodding.commands.ExampleCommand;
-import dev.hytalemodding.config.ExampleConfig;
-import dev.hytalemodding.events.ExampleEvent;
+import io.github.msilycanthropy.symphonia.commands.ExampleCommand;
+import io.github.msilycanthropy.symphonia.config.ExampleConfig;
+import io.github.msilycanthropy.symphonia.events.ExampleEvent;
 
 import javax.annotation.Nonnull;
 
-public class ExamplePlugin extends JavaPlugin {
+public class Symphonia extends JavaPlugin {
 
     private static Config<ExampleConfig> config = null;
 
-    public ExamplePlugin(@Nonnull JavaPluginInit init) {
+    public Symphonia(@Nonnull JavaPluginInit init) {
         super(init);
         config = this.withConfig("example_config", ExampleConfig.CODEC);
     }

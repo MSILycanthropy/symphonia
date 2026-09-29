@@ -1,4 +1,4 @@
-package dev.hytalemodding.config;
+package io.github.msilycanthropy.symphonia.config;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;

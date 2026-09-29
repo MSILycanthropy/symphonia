@@ -34,7 +34,7 @@ hytaleTools {
     patchline = property("patchline").toString()
     injectServerJavadocsIntoSources = property("injectServerJavadocsIntoSources").toString().toBoolean()
     generateAssetsBinary = property("generateAssetsBinary").toString().toBoolean()
-    // hytaleHomeOverride = property("hytaleHomeOverride").toString()
+    hytaleHomeOverride = property("hytaleHomeOverride").toString()
 }
 
 repositories {

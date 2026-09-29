@@ -1,16 +1,15 @@
 {
-    "Group": "HytaleModding",
-    "Name": "ExamplePlugin",
+    "Group": "MSILycanthropy",
+    "Name": "symphonia",
     "Version": "0.0.0",
-    "Description": "Description of your plugin",
+    "Description": "A testing playground for Hytale plugin development.",
     "Authors": [
         {
-            "Name": "Your_Name",
-            "Email": "your.email@example.com",
-            "Url": "https://your-website.com"
+            "Name": "MSILycanthropy",
+            "Url": "https://github.com/MSILycanthropy"
         }
     ],
-    "Website": "https://your-plugin-website.com",
+    "Website": "https://github.com/MSILycanthropy/symphonia",
     "DisabledByDefault": false,
     "IncludesAssetPack": true,
     "Dependencies": {
@@ -19,8 +18,8 @@
     "OptionalDependencies": {
         
     },
-    "ServerVersion": ">=0.5.3 <0.6.0",
-    "Main": "dev.hytalemodding.ExamplePlugin",
+    "ServerVersion": ">=0.7.0-pre.4 <0.8.0",
+    "Main": "io.github.msilycanthropy.symphonia.Symphonia",
     "UpdateChecker": {
         "CurseForge": ""
     }
