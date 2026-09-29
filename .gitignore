@@ -10,3 +10,4 @@ run/
 .project
 .settings/
 .vscode
+.kotlin/

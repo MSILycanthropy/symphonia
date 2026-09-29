@@ -2,6 +2,7 @@ plugins {
 // Uncomment if you are using IntelliJ.
 //  idea
     java
+    kotlin("jvm") version "2.4.20"
     id("com.azuredoom.hytale-tools") version "1.+"
 }
 
@@ -14,6 +15,14 @@ group = project.property("group").toString()
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(property("java_version").toString().toInt()))
+}
+
+kotlin {
+    jvmToolchain(25)
+}
+
+dependencies {
+    vineImplementation(kotlin("stdlib", "2.4.20"))
 }
 
 hytaleTools {

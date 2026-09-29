@@ -7,28 +7,35 @@ import com.hypixel.hytale.server.core.util.Config;
 import io.github.msilycanthropy.symphonia.commands.ExampleCommand;
 import io.github.msilycanthropy.symphonia.config.ExampleConfig;
 import io.github.msilycanthropy.symphonia.events.ExampleEvent;
-
 import javax.annotation.Nonnull;
 
 public class Symphonia extends JavaPlugin {
 
-    private static Config<ExampleConfig> config = null;
+  private static Config<ExampleConfig> config = null;
 
-    public Symphonia(@Nonnull JavaPluginInit init) {
-        super(init);
-        config = this.withConfig("example_config", ExampleConfig.CODEC);
-    }
+  public Symphonia(@Nonnull JavaPluginInit init) {
+    super(init);
+    config = this.withConfig("example_config", ExampleConfig.CODEC);
+  }
 
-    @Override
-    protected void setup() {
-        config.save();
-        this.getCommandRegistry().registerCommand(new ExampleCommand("example", "An example command"));
-        if (getConfig().get().isEnabledWelcomeMessage()) {
-            this.getEventRegistry().registerGlobal(PlayerReadyEvent.class, ExampleEvent::onPlayerReady);
-        }
-    }
+  @Override
+  protected void setup() {
+    config.save();
 
-    public static Config<ExampleConfig> getConfig() {
-        return config;
+    getLogger().at(java.util.logging.Level.INFO).log(Hello.greet(getName()));
+
+    this.getCommandRegistry().registerCommand(
+      new ExampleCommand("example", "An example command")
+    );
+    if (getConfig().get().isEnabledWelcomeMessage()) {
+      this.getEventRegistry().registerGlobal(
+        PlayerReadyEvent.class,
+        ExampleEvent::onPlayerReady
+      );
     }
+  }
+
+  public static Config<ExampleConfig> getConfig() {
+    return config;
+  }
 }
