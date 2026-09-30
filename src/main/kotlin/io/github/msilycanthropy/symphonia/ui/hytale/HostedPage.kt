@@ -10,6 +10,7 @@ import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType
 import com.hypixel.hytale.server.core.entity.entities.Player
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage
+import com.hypixel.hytale.server.core.ui.Value
 import com.hypixel.hytale.server.core.ui.builder.EventData
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
@@ -40,6 +41,7 @@ class UiEvent {
 // Sends the tree ones, routes events to the runtime and flushes patches
 class HostedPage(
     playerRef: PlayerRef,
+    private val title: String,
     private val root: Node,
     private val runtime: PageRuntime
 ) : InteractiveCustomUIPage<UiEvent>(playerRef, CustomPageLifetime.CanDismiss, UiEvent.CODEC) {
@@ -63,7 +65,11 @@ class HostedPage(
         store: Store<EntityStore>
     ) {
         val document = Markup.render(root)
-        commands.appendInline(null, document)
+        commands.append(FRAME)
+        commands.set("#TitleLabel.Text", title)
+        commands.appendInline("#Content", document)
+        applyStyleRefs(commands, root)
+        events.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", EventData.of("H", CLOSE), true)
 
         for ((nodeId, type, handlerId, locksInterface) in runtime.events) {
             events.addEventBinding(
@@ -78,6 +84,11 @@ class HostedPage(
     }
 
     override fun handleDataEvent(ref: Ref<EntityStore>, store: Store<EntityStore>, data: UiEvent) {
+        if (data.handler == CLOSE) {
+            close()
+            return
+        }
+
         val id = data.handler
         inHandler = true
 
@@ -92,6 +103,16 @@ class HostedPage(
         }
 
         flush(reply = true)
+    }
+
+    private fun applyStyleRefs(commands: UICommandBuilder, node: Node) {
+        for ((prop, value) in node.props) {
+            if (value is PropValue.StyleRef) commands.set(
+                "#${node.id}.$prop",
+                Value.ref<Any>(value.document, value.name)
+            )
+        }
+        node.children.forEach { applyStyleRefs(commands, it) }
     }
 
     private fun scheduleFlush() {
@@ -145,5 +166,7 @@ class HostedPage(
 
     companion object {
         private val LOGGER = HytaleLogger.forEnclosingClass()
+        private const val FRAME = "Symphonia/Frame.ui"
+        private const val CLOSE = "Close"
     }
 }

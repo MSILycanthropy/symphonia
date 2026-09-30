@@ -12,6 +12,7 @@ object Markup {
         val pad = "  ".repeat(depth)
         append(pad).append(node.type).append(" #").append(node.id).append(" {\n")
         for ((key, value) in node.props) {
+            if (value is PropValue.StyleRef) continue
             append(pad).append("  ").append(key).append(": ").append(value(value)).append(";\n")
         }
         for (child in node.children) render(child, depth + 1)
@@ -28,6 +29,7 @@ object Markup {
                 v.entries.entries.joinToString(", ", "(", ")") { (k, e) -> "$k: ${value(e)}" }
 
         is PropValue.Raw -> v.text
+        is PropValue.StyleRef -> error("StyleRef must be applied with set(), not inlined")
     }
 
     // Whole floats print as integers ("48" not "48.0"); others use the type's own shortest

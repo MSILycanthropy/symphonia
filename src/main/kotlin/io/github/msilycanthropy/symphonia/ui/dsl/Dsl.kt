@@ -36,14 +36,31 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
     fun group(layout: String = "Top", id: String? = null, content: UiScope.() -> Unit) =
         element("Group", id) { prop("LayoutMode", PropValue.Enum(layout)); content() }
 
-    fun text(value: String, id: String? = null, content: UiScope.() -> Unit = {}) =
-        element("Label", id) { prop("Text", value); content() }
+    // Every text defaults to Body and every button to PrimaryButton, so pages look native unless told otherwise.
 
-    fun text(id: String? = null, content: UiScope.() -> Unit = {}, value: () -> String) =
-        element("Label", id) { bind("Text", value); content() }
+    fun text(
+        value: String,
+        style: PropValue.StyleRef = Style.Body,
+        id: String? = null,
+        content: UiScope.() -> Unit = {}
+    ) =
+        element("Label", id) { prop("Text", value); prop("Style", style); content() }
 
-    fun button(label: String, id: String? = null, content: UiScope.() -> Unit = {}) =
-        element("TextButton", id) { prop("Text", label); content() }
+    fun text(
+        style: PropValue.StyleRef = Style.Body,
+        id: String? = null,
+        content: UiScope.() -> Unit = {},
+        value: () -> String
+    ) =
+        element("Label", id) { bind("Text", value); prop("Style", style); content() }
+
+    fun button(
+        label: String,
+        style: PropValue.StyleRef = Style.PrimaryButton,
+        id: String? = null,
+        content: UiScope.() -> Unit = {}
+    ) =
+        element("TextButton", id) { prop("Text", label); prop("Style", style); content() }
 
     // events
 
@@ -52,11 +69,24 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
     }
 }
 
+object Style {
+    private const val DOC = "Symphonia/Styles.ui"
+    val Body = PropValue.StyleRef(DOC, "Body")
+    val Title = PropValue.StyleRef(DOC, "Title")
+    val Caption = PropValue.StyleRef(DOC, "Caption")
+    val Muted = PropValue.StyleRef(DOC, "Muted")
+    val Highlight = PropValue.StyleRef(DOC, "Highlight")
+    val Display = PropValue.StyleRef(DOC, "Display")
+    val PrimaryButton = PropValue.StyleRef(DOC, "PrimaryButton")
+    val SecondaryButton = PropValue.StyleRef(DOC, "SecondaryButton")
+    val DestructiveButton = PropValue.StyleRef(DOC, "DestructiveButton")
+}
+
 // Build a page for a player. content lambda runs exactly once
-fun page(player: PlayerRef, content: UiScope.() -> Unit): HostedPage {
+fun page(player: PlayerRef, title: String, content: UiScope.() -> Unit): HostedPage {
     val runtime = PageRuntime()
     val ids = IdGenerator()
-    val root = Node("Group", "Root")
+    val root = Node("Group", "Root").apply { this["LayoutMode"] = PropValue.Enum("Top") }
     UiScope(runtime, ids, root).content()
-    return HostedPage(player, root, runtime)
+    return HostedPage(player, title, root, runtime)
 }

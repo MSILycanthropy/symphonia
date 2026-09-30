@@ -1,0 +1,30 @@
+// Page chrome for framework pages: the vanilla decorated container on a dimmed overlay.
+//
+// Templates with children cannot be inlined, so the host appends this document once as the
+// page root and then appends the page's inline tree into #Content. Addressable pieces:
+//   #TitleLabel.Text   the page title
+//   #Frame.Anchor      the container size (setObject with an Anchor)
+//   #CloseButton       the close control; the host binds Activating on it
+//   #Content           where the page's own elements go
+
+$C = "../Common.ui";
+
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer #Frame {
+    @CloseButton = true;
+    Anchor: (Width: 420);
+
+    #Title {
+      $C.@Title #TitleLabel {
+        @Text = "";
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Vertical: 24, Horizontal: 32);
+    }
+  }
+}

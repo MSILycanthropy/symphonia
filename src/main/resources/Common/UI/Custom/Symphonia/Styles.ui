@@ -1,0 +1,38 @@
+// Named styles for framework elements.
+//
+// Inline documents cannot import Common.ui, so every element the framework emits inline is
+// plain. This asset gives those elements the vanilla look: the host applies a style with
+//   set("#Id.Style", Value.ref("Symphonia/Styles.ui", "<Name>"))
+// right after the inline append. Each name below spreads a vanilla style so it tracks the
+// game's own look, and can be tweaked per name without touching pages.
+//
+// Names are referenced from Kotlin by string, so keep them stable.
+
+$C = "../Common.ui";
+$Sounds = "../Sounds.ui";
+
+// -- Text -----------------------------------------------------------------------------------
+
+@Body = LabelStyle(...$C.@DefaultLabelStyle);
+@Title = LabelStyle(...$C.@TitleStyle);
+@Subtitle = LabelStyle(...$C.@SubtitleStyle);
+@Caption = LabelStyle(...$C.@DefaultLabelStyle, FontSize: 12, TextColor: #878e9c);
+@Muted = LabelStyle(...$C.@DefaultLabelStyle, TextColor: #797b7c);
+@Highlight = LabelStyle(...$C.@DefaultLabelStyle, TextColor: #E8A93B, RenderBold: true);
+@Display = LabelStyle(...$C.@DefaultLabelStyle, FontSize: 48, RenderBold: true, HorizontalAlignment: Center, TextColor: #E8A93B);
+
+// -- Buttons --------------------------------------------------------------------------------
+// TextButton styles carry the four interaction states and the click sounds.
+
+@PrimaryButton = TextButtonStyle(...$C.@DefaultTextButtonStyle, Sounds: $Sounds.@ButtonsLight);
+@SecondaryButton = TextButtonStyle(...$C.@SecondaryTextButtonStyle, Sounds: $Sounds.@ButtonsLight);
+@TertiaryButton = TextButtonStyle(...$C.@TertiaryTextButtonStyle, Sounds: $Sounds.@ButtonsLight);
+@DestructiveButton = TextButtonStyle(...$C.@CancelTextButtonStyle);
+@SmallPrimaryButton = TextButtonStyle(...$C.@SmallDefaultTextButtonStyle, Sounds: $Sounds.@ButtonsLight);
+@SmallSecondaryButton = TextButtonStyle(...$C.@SmallSecondaryTextButtonStyle, Sounds: $Sounds.@ButtonsLight);
+
+// -- Inputs ---------------------------------------------------------------------------------
+
+@Input = InputFieldStyle(...$C.@DefaultInputFieldStyle);
+@Slider = SliderStyle(...$C.@DefaultSliderStyle);
+@Scrollbar = ScrollbarStyle(...$C.@DefaultScrollbarStyle);
