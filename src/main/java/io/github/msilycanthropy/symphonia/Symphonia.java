@@ -4,6 +4,7 @@ import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.util.Config;
+import io.github.msilycanthropy.symphonia.commands.CounterCommand;
 import io.github.msilycanthropy.symphonia.commands.ExampleCommand;
 import io.github.msilycanthropy.symphonia.config.ExampleConfig;
 import io.github.msilycanthropy.symphonia.events.ExampleEvent;
@@ -27,6 +28,8 @@ public class Symphonia extends JavaPlugin {
     this.getCommandRegistry().registerCommand(
       new ExampleCommand("example", "An example command")
     );
+    this.getCommandRegistry().registerCommand(new CounterCommand());
+
     if (getConfig().get().isEnabledWelcomeMessage()) {
       this.getEventRegistry().registerGlobal(
         PlayerReadyEvent.class,

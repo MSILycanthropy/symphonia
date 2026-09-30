@@ -1,6 +1,6 @@
 plugins {
 // Uncomment if you are using IntelliJ.
-//  idea
+// idea
     java
     kotlin("jvm") version "2.4.20"
     id("com.azuredoom.hytale-tools") version "1.+"
@@ -23,6 +23,7 @@ kotlin {
 
 dependencies {
     vineImplementation(kotlin("stdlib", "2.4.20"))
+    testImplementation(kotlin("test"))
 }
 
 hytaleTools {
@@ -53,6 +54,10 @@ repositories {
 tasks.named<Jar>("jar") {
     archiveBaseName.set(project.property("mod_name").toString())
     archiveVersion.set(project.property("version").toString())
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 // Uncomment if you are using IntelliJ.
