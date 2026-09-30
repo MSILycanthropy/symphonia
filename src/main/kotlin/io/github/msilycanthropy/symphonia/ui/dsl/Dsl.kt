@@ -26,6 +26,20 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
         node[name] = runtime.bind(node.id, name, compute).initial()
     }
 
+    // Both branches are built once, the condition just toggles Visible
+    fun show(condition: () -> Boolean, content: UiScope.() -> Unit): ShowScope {
+        branch(condition, content)
+        return ShowScope(this, condition)
+    }
+
+    internal fun branch(visible: () -> Boolean, content: UiScope.() -> Unit) {
+        element("Group") {
+            prop("LayoutMode", PropValue.Enum("Top"))
+            bind("Visible", visible)
+            content()
+        }
+    }
+
     fun element(type: String, id: String? = null, content: UiScope.() -> Unit = {}): UiScope {
         val child = node.add(Node(type, id ?: ids.next()))
         return UiScope(runtime, ids, child).apply(content)
@@ -37,6 +51,9 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
         element("Group", id) { prop("LayoutMode", PropValue.Enum(layout)); content() }
 
     // Every text defaults to Body and every button to PrimaryButton, so pages look native unless told otherwise.
+
+    fun text(style: () -> PropValue.StyleRef, id: String? = null, value: () -> String) =
+        element("Label", id) { bind("Text", value); bind("Style", style) }
 
     fun text(
         value: String,
@@ -54,6 +71,7 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
     ) =
         element("Label", id) { bind("Text", value); prop("Style", style); content() }
 
+
     fun button(
         label: String,
         style: PropValue.StyleRef = Style.PrimaryButton,
@@ -69,6 +87,14 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
     }
 }
 
+
+// Handle returned by show, so `otherwise` can attach the other branch
+class ShowScope internal constructor(private val parent: UiScope, private val cond: () -> Boolean) {
+    infix fun otherwise(content: UiScope.() -> Unit) {
+        parent.branch({ !cond() }, content)
+    }
+}
+
 object Style {
     private const val DOC = "Symphonia/Styles.ui"
     val Body = PropValue.StyleRef(DOC, "Body")
@@ -79,8 +105,13 @@ object Style {
     val Display = PropValue.StyleRef(DOC, "Display")
     val PrimaryButton = PropValue.StyleRef(DOC, "PrimaryButton")
     val SecondaryButton = PropValue.StyleRef(DOC, "SecondaryButton")
+    val TertiaryButton = PropValue.StyleRef(DOC, "TertiaryButton")
     val DestructiveButton = PropValue.StyleRef(DOC, "DestructiveButton")
+    val Input = PropValue.StyleRef(DOC, "Input")
+    val Slider = PropValue.StyleRef(DOC, "Slider")
+    val Scrollbar = PropValue.StyleRef(DOC, "Scrollbar")
 }
+
 
 // Build a page for a player. content lambda runs exactly once
 fun page(player: PlayerRef, title: String, content: UiScope.() -> Unit): HostedPage {

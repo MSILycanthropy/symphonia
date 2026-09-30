@@ -51,6 +51,10 @@ class PageRuntime {
     private val bindings = mutableListOf<Binding<*>>()
     private val handlers = mutableMapOf<String, (String?) -> Unit>()
 
+    var building = false
+        private set
+    private var evaluating = 0
+
     val events: List<EventBinding>
         field = mutableListOf<EventBinding>()
     var onDirty: () -> Unit = {}
@@ -59,6 +63,31 @@ class PageRuntime {
 
     fun <T> bind(nodeId: String, prop: String, compute: () -> T): Binding<T> =
         Binding(nodeId, prop, compute).also { bindings += it }
+
+    fun <T> build(block: () -> T): T {
+        building = true
+        try {
+            return block()
+        } finally {
+            building = false
+        }
+    }
+
+    internal fun <T> evaluating(block: () -> T): T {
+        evaluating++
+        try {
+            return block()
+        } finally {
+            evaluating--
+        }
+    }
+
+    internal fun checkRead() {
+        check(!building || evaluating > 0) {
+            "state read during page build outside a binding: it would never update. " +
+                    "Read it inside a lambda, or use show/each for structure."
+        }
+    }
 
     fun handler(id: String, run: (String?) -> Unit) {
         handlers[id] = run

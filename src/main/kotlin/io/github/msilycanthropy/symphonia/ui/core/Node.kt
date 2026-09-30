@@ -15,8 +15,14 @@ sealed interface PropValue {
     // (Key: value, ...) with an optional type
     data class Tuple(val entries: Map<String, PropValue>, val typeName: String? = null) : PropValue
 
-    // A named style in an asset document, applied at runtime with Value.ref
-    data class StyleRef(val document: String, val name: String) : PropValue
+    // A named style in an asset document, plus property overrides on top.
+    data class StyleRef(
+        val document: String,
+        val name: String,
+        val overrides: Map<String, Any> = emptyMap()
+    ) : PropValue {
+        operator fun plus(style: LabelStyle): StyleRef = copy(overrides = overrides + style.overrides())
+    }
 
     data class Raw(val text: String) : PropValue
 

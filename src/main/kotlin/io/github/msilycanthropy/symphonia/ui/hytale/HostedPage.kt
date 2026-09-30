@@ -49,7 +49,7 @@ class HostedPage(
 
     init {
         // Writes from outside an event handler (timers, etc) schedule a flush on the world thread
-        // Writes inside a given handler are flushed by the handler's guaranteed reply
+        // Writes inside a given haendler are flushed by the handler's guaranteed reply
         runtime.onDirty = { if (!inHandler) scheduleFlush() }
     }
 
@@ -64,6 +64,7 @@ class HostedPage(
         events: UIEventBuilder,
         store: Store<EntityStore>
     ) {
+        val start = System.nanoTime()
         val document = Markup.render(root)
         commands.append(FRAME)
         commands.set("#TitleLabel.Text", title)
@@ -80,7 +81,19 @@ class HostedPage(
             )
         }
 
-        LOGGER.at(Level.INFO).log("[ui] open: %d chars of markup, %d bindings", document.length, runtime.events.size)
+        // Size and timing of the initial packet, for comparing styling strategies and vanilla pages.
+        val sent = commands.commands
+        val bytes = sent.sumOf { (it.selector?.length ?: 0) + (it.data?.length ?: 0) + (it.text?.length ?: 0) }
+        LOGGER.at(Level.INFO).log(
+            "[ui] open '%s': %d commands, ~%d bytes (%d markup), %d bindings, built in %d us",
+            title, sent.size, bytes, document.length, runtime.events.size + 1, (System.nanoTime() - start) / 1_000
+        )
+    }
+
+    /** Open for this page's player. Must be called on the world thread, e.g. from a handler. */
+    fun open() {
+        val ref = playerRef.reference ?: return
+        open(ref, ref.store)
     }
 
     override fun handleDataEvent(ref: Ref<EntityStore>, store: Store<EntityStore>, data: UiEvent) {
@@ -105,15 +118,6 @@ class HostedPage(
         flush(reply = true)
     }
 
-    private fun applyStyleRefs(commands: UICommandBuilder, node: Node) {
-        for ((prop, value) in node.props) {
-            if (value is PropValue.StyleRef) commands.set(
-                "#${node.id}.$prop",
-                Value.ref<Any>(value.document, value.name)
-            )
-        }
-        node.children.forEach { applyStyleRefs(commands, it) }
-    }
 
     private fun scheduleFlush() {
         val ref = playerRef.reference ?: return
@@ -132,23 +136,37 @@ class HostedPage(
 
     private fun apply(commands: UICommandBuilder, patch: Patch) {
         when (patch) {
-            is Patch.Set -> {
-                val selector = "#${patch.nodeId}.${patch.prop}"
-                when (val v = patch.value) {
-                    is String -> commands.set(selector, v)
-                    is Boolean -> commands.set(selector, v)
-                    is Int -> commands.set(selector, v)
-                    is Float -> commands.set(selector, v)
-                    is Double -> commands.set(selector, v)
-                    is PropValue.Str -> commands.set(selector, v.value)
-                    is PropValue.Bool -> commands.set(selector, v.value)
-                    is PropValue.Num -> commands.set(selector, v.value.toDouble())
-                    is PropValue.Enum -> commands.set(selector, v.name)
-                    is PropValue.Color -> commands.set(selector, Markup.value(v))
-                    else -> error("cannot send ${v?.let { it::class.simpleName }} at runtime for $selector")
-                }
-            }
+            is Patch.Set -> setValue(commands, "#${patch.nodeId}.${patch.prop}", patch.value)
         }
+    }
+
+    private fun setValue(commands: UICommandBuilder, selector: String, value: Any?) {
+        when (value) {
+            is String -> commands.set(selector, value)
+            is Boolean -> commands.set(selector, value)
+            is Int -> commands.set(selector, value)
+            is Float -> commands.set(selector, value)
+            is Double -> commands.set(selector, value)
+            is PropValue.Str -> commands.set(selector, value.value)
+            is PropValue.Bool -> commands.set(selector, value.value)
+            is PropValue.Num -> commands.set(selector, value.value.toDouble())
+            is PropValue.Enum -> commands.set(selector, value.name)
+            is PropValue.Color -> commands.set(selector, Markup.value(value))
+            is PropValue.StyleRef -> applyStyle(commands, selector, value)
+            else -> error("cannot send ${value?.let { it::class.simpleName }} at runtime for $selector")
+        }
+    }
+
+    private fun applyStyleRefs(commands: UICommandBuilder, node: Node) {
+        for ((prop, value) in node.props) {
+            if (value is PropValue.StyleRef) applyStyle(commands, "#${node.id}.$prop", value)
+        }
+        node.children.forEach { applyStyleRefs(commands, it) }
+    }
+
+    private fun applyStyle(commands: UICommandBuilder, selector: String, style: PropValue.StyleRef) {
+        commands.set(selector, Value.ref<Any>(style.document, style.name))
+        for ((prop, value) in style.overrides) setValue(commands, "$selector.$prop", value)
     }
 
     private fun eventData(type: UiEventType, nodeId: String, handlerId: String): EventData {

@@ -34,7 +34,7 @@ class RuntimeTest {
         val rt = PageRuntime()
         var fired = 0
         rt.onDirty = { fired++ }
-        val a = rt.state(0);
+        val a = rt.state(0)
         val b = rt.state(0)
         a.set(1); b.set(1); a.set(2)
         assertEquals(1, fired)

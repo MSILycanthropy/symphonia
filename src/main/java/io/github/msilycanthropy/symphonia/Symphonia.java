@@ -23,8 +23,6 @@ public class Symphonia extends JavaPlugin {
   protected void setup() {
     config.save();
 
-    getLogger().at(java.util.logging.Level.INFO).log(Hello.greet(getName()));
-
     this.getCommandRegistry().registerCommand(
       new ExampleCommand("example", "An example command")
     );
