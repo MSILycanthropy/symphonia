@@ -16,6 +16,7 @@ import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore
+import io.github.msilycanthropy.symphonia.ui.core.EventBinding
 import io.github.msilycanthropy.symphonia.ui.core.Node
 import io.github.msilycanthropy.symphonia.ui.core.PageRuntime
 import io.github.msilycanthropy.symphonia.ui.core.Patch
@@ -72,14 +73,7 @@ class HostedPage(
         applyStyleRefs(commands, root)
         events.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", EventData.of("H", CLOSE), true)
 
-        for ((nodeId, type, handlerId, locksInterface) in runtime.events) {
-            events.addEventBinding(
-                type.toHytale(),
-                "#$nodeId",
-                eventData(type, nodeId, handlerId),
-                locksInterface
-            )
-        }
+        for (event in runtime.events) bindEvent(events, event)
 
         // Size and timing of the initial packet, for comparing styling strategies and vanilla pages.
         val sent = commands.commands
@@ -129,14 +123,38 @@ class HostedPage(
         val patches = runtime.flush()
         if (patches.isEmpty() && !reply) return
         val commands = UICommandBuilder()
-        for (patch in patches) apply(commands, patch)
+        val events = UIEventBuilder()
+        for (patch in patches) apply(commands, events, patch)
         LOGGER.at(Level.INFO).log("[ui] flush: %d patch(es)%s", patches.size, if (reply) " (reply)" else "")
-        sendUpdate(commands, null, false)
+        sendUpdate(commands, events, false)
     }
 
-    private fun apply(commands: UICommandBuilder, patch: Patch) {
+    private fun bindEvent(events: UIEventBuilder, event: EventBinding) {
+        events.addEventBinding(
+            event.type.toHytale(),
+            "#${event.nodeId}",
+            eventData(event.type, event.nodeId, event.handlerId),
+            event.locksInterface
+        )
+    }
+
+    private fun apply(commands: UICommandBuilder, events: UIEventBuilder, patch: Patch) {
         when (patch) {
             is Patch.Set -> setValue(commands, "#${patch.nodeId}.${patch.prop}", patch.value)
+            is Patch.Remove -> commands.remove("#${patch.nodeId}")
+            is Patch.Insert -> {
+                val markup = Markup.render(patch.node)
+
+                if (patch.beforeId != null) {
+                    commands.insertBeforeInline("#${patch.beforeId}", markup)
+                } else {
+                    commands.appendInline("#${patch.parentId}", markup)
+                }
+
+                applyStyleRefs(commands, patch.node)
+
+                for (event in patch.events) bindEvent(events, event)
+            }
         }
     }
 

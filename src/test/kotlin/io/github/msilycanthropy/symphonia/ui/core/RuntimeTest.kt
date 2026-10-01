@@ -10,8 +10,8 @@ class RuntimeTest {
     fun `flush sends only what changed`() {
         val rt = PageRuntime()
         val count = rt.state(0)
-        val label = rt.bind("Count", "Text") { "Count: ${count()}" }
-        val static = rt.bind("Title", "Text") { "Counter" }
+        val label = rt.bind(Node("Label", "Count"), "Text") { "Count: ${count()}" }
+        val static = rt.bind(Node("Label", "Title"), "Text") { "Counter" }
         label.initial(); static.initial()
 
         count.set(1)

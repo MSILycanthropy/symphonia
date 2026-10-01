@@ -2,9 +2,11 @@ package io.github.msilycanthropy.symphonia.ui.dsl
 
 import com.hypixel.hytale.server.core.universe.PlayerRef
 import io.github.msilycanthropy.symphonia.ui.core.IdGenerator
+import io.github.msilycanthropy.symphonia.ui.core.ListState
 import io.github.msilycanthropy.symphonia.ui.core.Node
 import io.github.msilycanthropy.symphonia.ui.core.PageRuntime
 import io.github.msilycanthropy.symphonia.ui.core.PropValue
+import io.github.msilycanthropy.symphonia.ui.core.Row
 import io.github.msilycanthropy.symphonia.ui.core.State
 import io.github.msilycanthropy.symphonia.ui.core.UiEventType
 import io.github.msilycanthropy.symphonia.ui.hytale.HostedPage
@@ -23,7 +25,7 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
 
     // A bound property, the lamda is re-evaled every flush and only changes are sent
     fun <T : Any> bind(name: String, compute: () -> T) {
-        node[name] = runtime.bind(node.id, name, compute).initial()
+        node[name] = runtime.bind(node, name, compute).initial()
     }
 
     // Both branches are built once, the condition just toggles Visible
@@ -37,6 +39,19 @@ class UiScope internal constructor(val runtime: PageRuntime, private val ids: Id
             prop("LayoutMode", PropValue.Enum("Top"))
             bind("Visible", visible)
             content()
+        }
+    }
+
+    fun <T> list(initial: List<T>, key: (T) -> Any): ListState<T> = runtime.list(initial, key)
+
+    fun <T> each(items: ListState<T>, layout: String = "Top", id: String? = null, content: UiScope.(Row<T>) -> Unit) {
+        element("Group", id) {
+            prop("LayoutMode", PropValue.Enum(layout))
+            runtime.mount(items, node) { row ->
+                val wrapper = Node("Group", ids.next()).apply { this["LayoutMode"] = PropValue.Enum("Top") }
+                UiScope(runtime, ids, wrapper).content(row)
+                wrapper
+            }
         }
     }
 
